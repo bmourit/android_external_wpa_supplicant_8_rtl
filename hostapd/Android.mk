@@ -55,7 +55,7 @@ INCLUDES = $(LOCAL_PATH)
 INCLUDES += $(LOCAL_PATH)/src
 INCLUDES += $(LOCAL_PATH)/src/utils
 INCLUDES += external/openssl/include
-INCLUDES += system/security/keystore
+INCLUDES += system/security/keystore/include
 ifdef CONFIG_DRIVER_NL80211
 INCLUDES += external/libnl-headers
 endif
@@ -910,7 +910,7 @@ endif
 ifneq ($(BOARD_HOSTAPD_PRIVATE_LIB),)
 LOCAL_STATIC_LIBRARIES += $(BOARD_HOSTAPD_PRIVATE_LIB)
 endif
-LOCAL_SHARED_LIBRARIES := libc libcutils libcrypto libssl
+LOCAL_SHARED_LIBRARIES := libc libcutils libcrypto libssl libkeystore_binder
 ifdef CONFIG_DRIVER_NL80211
 LOCAL_STATIC_LIBRARIES += libnl_2
 endif

@@ -24,11 +24,6 @@
 #include <openssl/engine.h>
 #endif /* OPENSSL_NO_ENGINE */
 
-#ifdef ANDROID
-#include <openssl/pem.h>
-#include "keystore_get.h"
-#endif /* ANDROID */
-
 #include "common.h"
 #include "crypto.h"
 #include "tls.h"
@@ -48,6 +43,22 @@
 #define CONFIG_OPENSSL_TICKET_OVERRIDE
 #endif
 #endif
+
+#ifdef ANDROID
+#include <openssl/pem.h>
+#include <keystore/keystore_get.h>
+
+static BIO * BIO_from_keystore(const char *key) {
+    BIO *bio = NULL;
+    uint8_t *value = NULL;
+    int length = keystore_get(key, strlen(key), &value);
+    if (length != -1 && (bio = BIO_new(BIO_s_mem())) != NULL) {
+        BIO_write(bio, value, length);
+    }
+    free(value);
+    return bio;
+}
+#endif /* ANDROID */
 
 static int tls_openssl_ref_count = 0;
 
@@ -1332,20 +1343,6 @@ static int tls_load_ca_der(void *_ssl_ctx, const char *ca_cert)
 }
 #endif /* OPENSSL_NO_STDIO */
 
-
-#ifdef ANDROID
-static BIO * BIO_from_keystore(const char *key)
-{
-	BIO *bio = NULL;
-	char value[KEYSTORE_MESSAGE_SIZE];
-	int length = keystore_get(key, strlen(key), value);
-	if (length != -1 && (bio = BIO_new(BIO_s_mem())) != NULL)
-		BIO_write(bio, value, length);
-	return bio;
-}
-#endif /* ANDROID */
-
-
 static int tls_connection_ca_cert(void *_ssl_ctx, struct tls_connection *conn,
 				  const char *ca_cert, const u8 *ca_cert_blob,
 				  size_t ca_cert_blob_len, const char *ca_path)
@@ -2035,26 +2032,6 @@ static int tls_connection_private_key(void *_ssl_ctx,
 
 		break;
 	}
-
-#ifdef ANDROID
-	if (!ok && private_key &&
-	    os_strncmp("keystore://", private_key, 11) == 0) {
-		BIO *bio = BIO_from_keystore(&private_key[11]);
-		EVP_PKEY *pkey = NULL;
-		if (bio) {
-			pkey = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL);
-			BIO_free(bio);
-		}
-		if (pkey) {
-			if (SSL_use_PrivateKey(conn->ssl, pkey) == 1) {
-				wpa_printf(MSG_DEBUG, "OpenSSL: Private key "
-					   "from keystore");
-				ok = 1;
-			}
-			EVP_PKEY_free(pkey);
-		}
-	}
-#endif /* ANDROID */
 
 	while (!ok && private_key) {
 #ifndef OPENSSL_NO_STDIO
