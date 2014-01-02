@@ -136,6 +136,7 @@ void p2p_buf_add_channel_list(struct wpabuf *buf, const char *country,
 		    len + 2, (u8 *) wpabuf_put(buf, 0) - len - 2);
 }
 
+
 void p2p_buf_add_status(struct wpabuf *buf, u8 status)
 {
 	/* Status */
@@ -325,25 +326,6 @@ void p2p_buf_add_p2p_interface(struct wpabuf *buf, struct p2p_data *p2p)
 	wpabuf_put_data(buf, p2p->cfg->dev_addr, ETH_ALEN);
 }
 
-#ifdef CONFIG_WFD
-void p2p_buf_add_wfd_ie(struct wpabuf *buf)
-{
-	u16 device_info_bitmap = 0;
-	u16 sess_mng_ctl_port = 8554; // Default port
-	u16 wfd_dev_max_thruput = 8; // 8Mbps max throughput
-	device_info_bitmap |= 1 << 4; //available for WFD session
-
-	wpabuf_put_u8(buf, WLAN_EID_VENDOR_SPECIFIC );
-	wpabuf_put_u8(buf, 13 );
-	wpabuf_put_be24(buf, OUI_WFA);
-	wpabuf_put_u8(buf, 0xA );// WFD OUI TYPE
-	wpabuf_put_u8(buf, 0 );  // Device Info subelement
-	wpabuf_put_be16(buf, 6); //length
-	wpabuf_put_be16(buf, device_info_bitmap );
-	wpabuf_put_be16(buf, sess_mng_ctl_port );
-	wpabuf_put_be16(buf, wfd_dev_max_thruput);
-}
-#endif
 
 static void p2p_add_wps_string(struct wpabuf *buf, enum wps_attribute attr,
 			       const char *val)

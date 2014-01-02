@@ -11,11 +11,9 @@
 #include <time.h>
 
 #ifdef ANDROID
-#include <linux/capability.h>
+#include <sys/capability.h>
 #include <linux/prctl.h>
-#if !defined(PURE_LINUX)
 #include <private/android_filesystem_config.h>
-#endif /* !defined(PURE_LINUX) */
 #endif /* ANDROID */
 
 #include "os.h"
@@ -215,6 +213,9 @@ char * os_rel2abs_path(const char *rel_path)
 	size_t len = 128, cwd_len, rel_len, ret_len;
 	int last_errno;
 
+	if (!rel_path)
+		return NULL;
+
 	if (rel_path[0] == '/')
 		return os_strdup(rel_path);
 
@@ -254,12 +255,16 @@ char * os_rel2abs_path(const char *rel_path)
 
 int os_program_init(void)
 {
-#if defined(ANDROID) && !defined(PURE_LINUX)
+#ifdef ANDROID
 	/*
 	 * We ignore errors here since errors are normal if we
 	 * are already running as non-root.
 	 */
+#ifdef ANDROID_SETGROUPS_OVERRIDE
+	gid_t groups[] = { ANDROID_SETGROUPS_OVERRIDE };
+#else /* ANDROID_SETGROUPS_OVERRIDE */
 	gid_t groups[] = { AID_INET, AID_WIFI, AID_KEYSTORE };
+#endif /* ANDROID_SETGROUPS_OVERRIDE */
 	struct __user_cap_header_struct header;
 	struct __user_cap_data_struct cap;
 

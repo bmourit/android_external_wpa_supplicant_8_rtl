@@ -20,7 +20,6 @@ endif
 ifdef CONFIG_DRIVER_NL80211
 DRV_CFLAGS += -DCONFIG_DRIVER_NL80211
 DRV_OBJS += ../src/drivers/driver_nl80211.o
-DRV_OBJS += ../src/drivers/wpa_supplicant_8_lib/driver_cmd_nl80211.o
 DRV_OBJS += ../src/utils/radiotap.o
 NEED_SME=y
 NEED_AP_MLME=y
@@ -54,6 +53,14 @@ DRV_CFLAGS += -DCONFIG_DRIVER_BSD
 DRV_OBJS += ../src/drivers/driver_bsd.o
 CONFIG_L2_FREEBSD=y
 CONFIG_DNET_PCAP=y
+endif
+
+ifdef CONFIG_DRIVER_OPENBSD
+ifndef CONFIG_L2_PACKET
+CONFIG_L2_PACKET=freebsd
+endif
+DRV_CFLAGS += -DCONFIG_DRIVER_OPENBSD
+DRV_OBJS += ../src/drivers/driver_openbsd.o
 endif
 
 ifdef CONFIG_DRIVER_TEST
@@ -99,7 +106,6 @@ endif
 
 ifdef CONFIG_DRIVER_WEXT
 DRV_WPA_CFLAGS += -DCONFIG_DRIVER_WEXT
-DRV_OBJS += ../src/drivers/wpa_supplicant_8_lib/driver_cmd_wext.o
 CONFIG_WIRELESS_EXTENSION=y
 NEED_NETLINK=y
 NEED_LINUX_IOCTL=y
